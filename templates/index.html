@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Flask App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">Daniel Babativa, Duvan Londoño</div>
+    </nav>
+    <h1> Bienvenidos a {{name}}!</h1>
+    <button class="toggle-btn">☰</button>
+<div class="sidebar">
+    <ul class="menu">
+        <li><a href="index">Inicio</a></li>
+        <li><a href="casos_de_uso_ML">Casos de Uso ML</a></li>
+        <li><a href="prediccion">Predicción</a></li>
+        <li class="submenu">
+            <a href="#">Regresión Logística</a>
+            <ul>
+                <li><a href="conceptos_basicos">Conceptos Básicos</a></li>
+                <li><a href="Cursos">Ejercicio Practico</a></li>
+            </ul>
+        </li>
+        <li class="submenu">
+            <a href="#">KNN</a>
+            <ul>
+                <li><a href="mapa">Mapa conceptual</a></li>
+                <li><a href="KNN">Ejercicio Practico</a></li>
+            </ul>
+        </li>
+        <li><a href="KNN">Recomendación K-NN</a></li>
+    </ul>
+</div>
+    <script>
+        const toggleBtn = document.querySelector('.toggle-btn');
+        const sidebar = document.querySelector('.sidebar');
+
+    toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
+    </script>
+    <div id="carouselFondo" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="3000">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEGqHqv4d3Bn1QF-ux0A-MpxIaReXJx_W0NVO-hJmlzc3PFSWqVvnZxCakIsL6kmqXw70&usqp=CAU" class="d-block w-100" alt="Fondo 1">
+            </div>
+            <div class="carousel-item">
+                <img src="https://blogs.uoc.edu/informatica/wp-content/uploads/sites/153/2022/11/10-aplicacions-1024x762.png" class="d-block w-100" alt="Fondo 2">
+            </div>
+            <div class="carousel-item">
+                <img src="https://www.iberdrola.com/documents/20125/40126/Deep_Learning_ESP.jpg/6007eb72-4785-eda1-6948-80b5aa9f1dcf?t=1626932432027" class="d-block w-100" alt="Fondo 3">
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselFondo" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselFondo" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselFondo" data-bs-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Siguiente</span>
+    </button>
+
+    </div>
+
+</body>
+</html>
