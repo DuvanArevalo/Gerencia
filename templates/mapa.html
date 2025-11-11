@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Mapa de Alertas{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background-color: #fff;
+        margin: 0;
+        padding: 0;
+    }
+
+    .map-container {
+        position: relative;
+        width: 100%;
+        height: 85vh;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        margin-top: 10px;
+    }
+
+    /* Botón flotante */
+    .alert-btn {
+        position: absolute;
+        bottom: 25px;
+        right: 25px;
+        background-color: #dc3545;
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        width: 70px;
+        height: 70px;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
+    }
+
+    .alert-btn:hover {
+        background-color: #b52a36;
+        transform: scale(1.1);
+    }
+
+    /* Texto encima del botón (opcional) */
+    .alert-text {
+        position: absolute;
+        bottom: 100px;
+        right: 30px;
+        background-color: rgba(255,255,255,0.9);
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: bold;
+        color: #333;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+</style>
+
+<div class="map-container">
+    <!-- Mapa -->
+    <iframe id="mapaFrame" src="{{ url_for('static', filename='mapa_alerta.html') }}" width="100%" height="100%"></iframe>
+
+    <!-- Texto opcional -->
+    <div class="alert-text">Haz clic para enviar alerta</div>
+
+    <!-- Botón de alerta flotante -->
+    <button class="alert-btn" onclick="enviarAlerta()">🚨</button>
+</div>
+
+<script>
+    function enviarAlerta() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+
+                fetch('/alerta', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lat: lat, lon: lon })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        alert('✅ Alerta enviada correctamente');
+                        document.getElementById('mapaFrame').src = '/static/mapa_alerta.html?rand=' + Math.random();
+                    }
+                });
+            }, function(error) {
+                alert('Error al obtener ubicación: ' + error.message);
+            });
+        } else {
+            alert('Tu navegador no soporta geolocalización.');
+        }
+    }
+</script>
+{% endblock %}

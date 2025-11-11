@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Gerencia{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="menu-container">
+      <button class="menu-btn" id="menu-btn">&#9776;</button>
+      <div class="menu" id="menu">
+  <a href="{{ url_for('index') }}">Inicio</a>
+
+  {% if current_user.is_authenticated %}
+    {% if current_user.is_admin %}
+      <a href="{{ url_for('dashboard') }}">Dashboard</a>
+    {% else %}
+    <a href="{{ url_for('mapa') }}" class="btn btn-primary">Ver Mapa de Simulación</a>
+      <a href="{{ url_for('create_entry') }}">Llenar Formulario</a>
+      <a href="{{ url_for('my_entries') }}">Mis Formularios</a>
+    {% endif %}
+    <a href="{{ url_for('logout') }}">Cerrar sesión</a>
+  {% else %}
+    <a href="{{ url_for('login') }}">Iniciar sesión</a>
+    <a href="{{ url_for('register') }}">Registrarse</a>
+  {% endif %}
+</div>
+
+    </div>
+    <h1 class="nav-title">Gerencia</h1>
+  </nav>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <script>
+    const menuBtn = document.getElementById('menu-btn');
+    const menu = document.getElementById('menu');
+    menuBtn.addEventListener('click', () => {
+      menu.classList.toggle('show');
+    });
+  </script>
+</body>
+</html>

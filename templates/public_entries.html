@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Publicaciones{% endblock %}
+{% block content %}
+<h2>Publicaciones disponibles</h2>
+<ul>
+  {% for e in entries %}
+    <li><strong>{{ e.title }}</strong>: {{ e.description }}</li>
+  {% endfor %}
+</ul>
+{% endblock %}
