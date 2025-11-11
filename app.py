@@ -1,116 +1,170 @@
-from flask import Flask
-from flask import render_template
-from flask import request
-from modeloCurso import evaluar_modelo
-import LinearRegression
-import joblib
-import numpy as np
-import pickle
+from flask import Flask, render_template, redirect, url_for, request, flash
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
+import folium
+import os
 
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'clave_super_segura'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///gerencia.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-app = Flask (__name__)
-model = joblib.load("linear_regression_model.pkl")
+db = SQLAlchemy(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
 
-@app.route('/casos_de_uso_ML')
-def casos_de_uso_ML():
-    return render_template('casos_de_uso_ML.html')
+# ===== MODELOS =====
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
 
-@app.route('/conceptos_basicos')
-def conceptos_basicos():
-    return render_template('conceptos_basicos.html')
+class Entry(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    author = db.relationship('User', backref=db.backref('entries', lazy=True))
 
-@app.route('/mapa')
-def mapa():
-    return render_template('mapa.html')
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
-@app.route('/navbar')
-def navbar():
-    return render_template('navbar.html')
+# ===== RUTAS =====
 
 @app.route('/')
-def home():
-    Myname = "Machine_Learning"
-    return render_template('index.html', name=Myname)
+@login_required
+def index():
+    entries = Entry.query.order_by(Entry.created_at.desc()).all()
+    return render_template('public_entries.html', entries=entries)
 
-#@app.route('/LinearRegression', methods=['GET', 'POST'])
-#def linearRegression():
-    #calculatedResult = None
-    #if request.method == 'POST':
-        #calculatedResult = linearRegression.CalcuateGrade("5")
-    #return "Final Grade Predicted: " + str(calculatedResult)
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
 
-@app.route("/prediccion", methods=["GET", "POST"])
-def calculateGrade():
-    calculateResult = None
-    if request.method == "POST":
-        Rainfall = float(request.form["rainfall"])
-        Temperature = float(request.form["temperature"])
-        predicted_coffe_price = model.predict([[Rainfall, Temperature]])
-        calculateResult = predicted_coffe_price[0]
-    return render_template("prediccion.html", result = calculateResult)
+        # Verificar si el usuario ya existe
+        if User.query.filter_by(username=username).first():
+            flash('El nombre de usuario ya existe.')
+            return redirect(url_for('register'))
 
-with open('./PKL/modelo_aprobacion.pkl', 'rb') as f:
-    model = pickle.load(f)
+        hashed_password = generate_password_hash(password)
+        new_user = User(username=username, password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+        flash('Registro exitoso. Ya puedes iniciar sesión.')
+        return redirect(url_for('login'))
 
-with open('./PKL/scaler_aprobacion.pkl', 'rb') as f: 
-    scaler = pickle.load(f)
+    return render_template('register.html')
 
-@app.route("/Cursos", methods=["GET", "POST"])
-def prediccionCurso():
-    resultado = None
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
 
-    if request.method == "POST":
-        horas = float(request.form["horas"])
-        foros = int(request.form["foros"])
-        nivel = request.form["nivel"]
+        user = User.query.filter_by(username=username).first()
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            flash('Bienvenido, ' + user.username)
+            return redirect(url_for('dashboard') if user.is_admin else url_for('index'))
+        else:
+            flash('Credenciales inválidas.')
+    return render_template('login.html')
 
-        niveles = {"Secundaria": 0, "Tecnico": 1, "Universitario": 2}
-        nivel_codificado = niveles.get(nivel, 0)
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('Has cerrado sesión.')
+    return redirect(url_for('index'))
 
-        entrada = np.array([[horas, foros, nivel_codificado]])
-        entrada_escalada = scaler.transform(entrada)
-        prediccion = model.predict(entrada_escalada)
+@app.route('/create_entry', methods=['GET', 'POST'])
+@login_required
+def create_entry():
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+        new_entry = Entry(title=title, description=description, author=current_user)
+        db.session.add(new_entry)
+        db.session.commit()
+        flash('Entrada creada correctamente.')
+        return redirect(url_for('dashboard' if current_user.is_admin else 'my_entries'))
 
-        resultado = "Sí" if prediccion[0] == 1 else "No"
+    return render_template('create_entry.html')
 
-    # Métricas del modelo (siempre visibles)
-    accuracy, report_html, conf_matrix_img = evaluar_modelo(model, scaler)
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    if not current_user.is_admin:
+        flash('Acceso denegado.')
+        return redirect(url_for('index'))
+    entries = Entry.query.order_by(Entry.created_at.desc()).all()
+    return render_template('dashboard.html', entries=entries)
 
-    return render_template("Cursos.html",
-                           result=resultado,
-                           accuracy=accuracy,
-                           report_html=report_html,
-                           conf_matrix_img=conf_matrix_img)
-    
-@app.route('/KNN', methods=['GET', 'POST'])
-def recomendar():
-    if request.method == 'GET':
-        return render_template("KNN.html", categoria=None)
+@app.route('/my_entries')
+@login_required
+def my_entries():
+    # Solo el usuario normal verá sus formularios
+    if current_user.is_admin:
+        return redirect(url_for('dashboard'))
+    entries = Entry.query.filter_by(user_id=current_user.id).order_by(Entry.created_at.desc()).all()
+    return render_template('my_entries.html', entries=entries)
 
-    try:
-        data = request.form
-        edad = int(data['edad'])
-        genero = 1 if data['genero'] == 'F' else 0
-        historial = int(data['historial'])
-        tiempo = float(data['tiempo'])
-        categorias = int(data['categorias'])
+@app.route('/mapa')
+@login_required
+def mapa():
+    if current_user.is_admin:
+        flash('El administrador no tiene acceso al mapa de usuarios.')
+        return redirect(url_for('dashboard'))
 
-        with open("PKL/scaler_knn.pkl", "rb") as f:
-            scaler = pickle.load(f)
-        with open("PKL/knn_model.pkl", "rb") as f:
-            knn = pickle.load(f)
-        with open("PKL/encoder_knn.pkl", "rb") as f:
-            encoder = pickle.load(f)
+    # Crea un mapa base centrado en Colombia (por ejemplo)
+    latitud = 4.7110
+    longitud = -74.0721
+    mapa_alerta = folium.Map(location=[latitud, longitud], zoom_start=10)
 
-        entrada = scaler.transform([[edad, genero, historial, tiempo, categorias]])
-        pred = knn.predict(entrada)
-        categoria = encoder.inverse_transform([pred[0]])[0]
+    mapa_path = os.path.join('static', 'mapa_alerta.html')
+    mapa_alerta.save(mapa_path)
 
-        return render_template("KNN.html", categoria=categoria)
-
-    except Exception as e:
-        return render_template("KNN.html", categoria=None, error=str(e))
+    return render_template('mapa.html', mapa_path=mapa_path)
 
 
-if __name__== '__main__':
+@app.route('/alerta', methods=['POST'])
+@login_required
+def alerta():
+    data = request.get_json()
+    lat = data.get('lat')
+    lon = data.get('lon')
+
+    # Crear un mapa centrado en la ubicación del usuario
+    mapa_alerta = folium.Map(location=[lat, lon], zoom_start=14)
+
+    folium.Marker(
+        location=[lat, lon],
+        popup=f'🚨 Alerta de {current_user.username}',
+        tooltip='Ubicación actual',
+        icon=folium.Icon(color='red', icon='exclamation-sign')
+    ).add_to(mapa_alerta)
+
+    mapa_path = os.path.join('static', 'mapa_alerta.html')
+    mapa_alerta.save(mapa_path)
+
+    return {'status': 'ok'}
+
+
+# ===== Inicialización =====
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+        # Crear admin si no existe
+        if not User.query.filter_by(username='admin').first():
+            admin = User(username='admin', password=generate_password_hash('admin123'), is_admin=True)
+            db.session.add(admin)
+            db.session.commit()
     app.run(debug=True)

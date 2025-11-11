@@ -1,155 +1,172 @@
+/* ====== GENERAL ====== */
 body {
-    background-color: #ffffff;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: #f4f6f9;
+  color: #333;
 }
 
-h1 {
-    color: rgb(4, 7, 171);
-    text-align: center;
+main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 60px);
+  padding: 20px;
 }
 
-h2 {
-    color: rgb(0, 0, 0);
-    text-align: center;
+/* ====== NAVBAR ====== */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #004aad;
+  color: white;
+  padding: 10px 20px;
+  height: 60px;
 }
 
-h3 {
-    color: #2c3e50;
-    margin-top: 20px;
+.nav-title {
+  font-size: 1.2em;
+  font-weight: bold;
 }
 
-.table-bordered th, .table-bordered td {
-    text-align: center;
-    vertical-align: middle;
+.menu-container {
+  position: relative;
 }
 
-img {
-    border: 1px solid #ccc;
-    padding: 10px;
-    background-color: #f9f9f9;
+.menu-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 26px;
+  cursor: pointer;
 }
 
-
-form {
-    background-color: white;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 400px;
-    box-sizing: border-box;
-    margin: 0 auto;
+.menu {
+  display: none;
+  position: absolute;
+  top: 40px;
+  left: 0;
+  background: white;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  border-radius: 10px;
+  min-width: 180px;
+  z-index: 100;
 }
 
-label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
+.menu a {
+  color: #004aad;
+  text-decoration: none;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
 }
 
-input[type="number"] {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-    margin: 0 auto;
+.menu a:last-child {
+  border-bottom: none;
 }
 
-nav {
-    background-color: #005403;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 16px;
-    height: 60px;
-    z-index: 1000;
-    overflow: hidden;
+.menu a:hover {
+  background: #f0f0f0;
 }
 
-nav .logo {
-    color: rgb(229, 255, 0);
-    text-decoration: none;
-    padding: 14px 16px;
-    text-align: right;
-    flex: 1;
+.menu.show {
+  display: flex;
 }
 
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
+/* ====== CARD (LOGIN, REGISTER, FORMULARIOS) ====== */
+.card {
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
 }
 
-.toggle-btn {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 3000;
-    background-color: #005403;
-    color: #fff;
-    border: none;
-    padding: 10px 16px;
-    cursor: pointer;
-    border-radius: 6px;
+.card h2 {
+  margin-bottom: 20px;
+  color: #004aad;
 }
 
-.sidebar {
-    position: fixed;
-    top: 60px;
-    left: -250px;
-    width: 250px;
-    height: 100%;
-    background-color: #003902;
-    color: rgb(225, 255, 0);
-    padding: 20px;
-    transition: left 0.3s ease;
-    z-index: 1500;
+.card form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
-.sidebar.active {
-    left: 0;
+.card input, .card textarea {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s;
 }
 
-.sidebar ul li a {
-    color: #e5ff00;
-    text-decoration: none;
-    display: block;
-    padding: 10px 0;
+.card input:focus, .card textarea:focus {
+  border-color: #004aad;
 }
 
-.main-content {
-    margin-left: 0;
-    padding: 20px;
-    transition: margin-left 0.3s ease;
+.card button {
+  background: #004aad;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
-.sidebar.active~.main-content {
-    margin-left: 250px;
+.card button:hover {
+  background: #003a8c;
 }
 
-.carousel {
-    position: center;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100vh;
-    text-align: center;
-    padding: 10px 20px;
+/* ====== SECONDARY BUTTON ====== */
+.btn-secondary {
+  background: #ccc;
+  color: #333;
 }
 
-.carousel-item img {
-    width: 100%;
-    height: 500px;
-    object-fit: contain;
-
+.btn-secondary:hover {
+  background: #b3b3b3;
 }
 
-.carousel-fondo {
-    width: 100%;
-    max-height: 100px;
-    overflow: hidden;
-    position: relative;
-    z-index: 1;
-    border-radius: 8px;
+/* ====== LINKS ====== */
+.card a {
+  color: #004aad;
+  font-size: 0.9em;
+  text-decoration: none;
+}
 
+.card a:hover {
+  text-decoration: underline;
+}
+
+/* ====== LISTAS ====== */
+.container {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 800px;
+}
+
+.container h2 {
+  color: #004aad;
+  margin-bottom: 15px;
+}
+
+.container ul {
+  list-style: none;
+  padding: 0;
+}
+
+.container li {
+  background: #f9f9f9;
+  margin-bottom: 10px;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
